@@ -14,7 +14,7 @@ static void *outputThread(void *arg)
 		int number;
 
 		// Aus Pipe lesen. ACHTUNG: Fehler prüfen!!!
-		if ((errno = read(readFd, number, sizeof(int))) == -1)
+		if ((errno = read(readFd, &number, sizeof(int))) == -1)
 		{
 			perror("failed to read from pipe");
 			exit(EXIT_FAILURE);
@@ -35,7 +35,7 @@ static void *randomThread(void *arg)
 		const int number = rand();
 
 		// Zufallszahl in Pipe schreiben. ACHTUNG: Fehler abfragen!!!
-		if ((errno = write(writeFd, number, sizeof(int))) == -1)
+		if ((errno = write(writeFd, &number, sizeof(int))) == -1)
 		{
 			perror("failed to write data to pipe");
 			exit(EXIT_FAILURE);
