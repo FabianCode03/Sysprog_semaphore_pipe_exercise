@@ -35,6 +35,11 @@ static void *randomThread(void *arg)
 		const int number = rand();
 
 		// Zufallszahl in Pipe schreiben. ACHTUNG: Fehler abfragen!!!
+		if ((errno = write(writeFd, number, sizeof(int))) == -1)
+		{
+			perror("failed to write data to pipe");
+			exit(EXIT_FAILURE);
+		}
 	}
 
 	return NULL;
