@@ -9,11 +9,11 @@ static void *outputThread(void *arg)
 {
 	const int readFd = *((const int *)arg);
 
-	for(;;)
+	for (;;)
 	{
 		int number;
 
-		//Aus Pipe lesen. ACHTUNG: Fehler prüfen!!!
+		// Aus Pipe lesen. ACHTUNG: Fehler prüfen!!!
 
 		printf("%i\n", number);
 	}
@@ -25,7 +25,7 @@ static void *randomThread(void *arg)
 {
 	const int writeFd = *((const int *)arg);
 
-	for(;;)
+	for (;;)
 	{
 		const int number = rand();
 
@@ -39,22 +39,22 @@ static void startStop(void)
 {
 	bool running = false;
 
-	for(;;)
+	for (;;)
 	{
 		const int ch = getchar();
-		if(ch == EOF)
+		if (ch == EOF)
 		{
-			if(ferror(stdin))	//error
+			if (ferror(stdin)) // error
 			{
 				perror("getchar");
 				exit(EXIT_FAILURE);
 			}
-			else			//end of file, Ctrl+D
+			else // end of file, Ctrl+D
 				return;
 		}
-		else if(ch == '\n')
+		else if (ch == '\n')
 		{
-			if(running)
+			if (running)
 			{
 				running = false;
 			}
@@ -70,16 +70,21 @@ int main(void)
 {
 	int pipeFds[2];
 	// Pipe erzeugen
+	if ((errno = pipe(pipeFds)) != 0)
+	{
+		perror("failed to create a pipe");
+		exit(EXIT_FAILURE);
+	}
 
 	pthread_t outputThreadHandle;
-	if((errno = pthread_create(&outputThreadHandle, NULL, outputThread, &pipeFds[0])) != 0)
+	if ((errno = pthread_create(&outputThreadHandle, NULL, outputThread, &pipeFds[0])) != 0)
 	{
 		perror("pthread_create (outputThread)");
 		return EXIT_FAILURE;
 	}
 
 	pthread_t randomThreadHandle;
-	if((errno = pthread_create(&randomThreadHandle, NULL, randomThread, &pipeFds[1])) != 0)
+	if ((errno = pthread_create(&randomThreadHandle, NULL, randomThread, &pipeFds[1])) != 0)
 	{
 		perror("pthread_create (randomThread)");
 		return EXIT_FAILURE;
