@@ -14,6 +14,11 @@ static void *outputThread(void *arg)
 		int number;
 
 		// Aus Pipe lesen. ACHTUNG: Fehler prüfen!!!
+		if ((errno = read(readFd, number, sizeof(int))) == -1)
+		{
+			perror("failed to read from pipe");
+			exit(EXIT_FAILURE);
+		}
 
 		printf("%i\n", number);
 	}
