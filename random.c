@@ -4,6 +4,10 @@
 #include <errno.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <semaphore.h>
+
+sem_t readWriteSem;
+int semaphoreValue = 1;
 
 static void *outputThread(void *arg)
 {
@@ -13,6 +17,9 @@ static void *outputThread(void *arg)
 	{
 		int number;
 
+		sem_wait(&readWriteSem);
+		semaphoreValue--;
+
 		// Aus Pipe lesen. ACHTUNG: Fehler prüfen!!!
 		if ((errno = read(readFd, &number, sizeof(int))) == -1)
 		{
@@ -21,6 +28,9 @@ static void *outputThread(void *arg)
 		}
 
 		printf("%i\n", number);
+
+		semaphoreValue++;
+		sem_post(&readWriteSem);
 	}
 
 	return NULL;
@@ -32,6 +42,8 @@ static void *randomThread(void *arg)
 
 	for (;;)
 	{
+		sem_wait(&readWriteSem);
+		semaphoreValue--;
 		const int number = rand();
 
 		// Zufallszahl in Pipe schreiben. ACHTUNG: Fehler abfragen!!!
@@ -40,6 +52,8 @@ static void *randomThread(void *arg)
 			perror("failed to write data to pipe");
 			exit(EXIT_FAILURE);
 		}
+		semaphoreValue++;
+		sem_post(&readWriteSem);
 	}
 
 	return NULL;
@@ -67,10 +81,14 @@ static void startStop(void)
 			if (running)
 			{
 				running = false;
+				sem_wait(&readWriteSem);
+				semaphoreValue--;
 			}
 			else
 			{
 				running = true;
+				semaphoreValue++;
+				sem_post(&readWriteSem);
 			}
 		}
 	}
@@ -78,6 +96,8 @@ static void startStop(void)
 
 int main(void)
 {
+	sem_init(&readWriteSem, 0, 1U);
+
 	int pipeFds[2];
 	// Pipe erzeugen
 	if ((errno = pipe(pipeFds)) != 0)
